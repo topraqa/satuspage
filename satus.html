@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hızlı Giriş Sayfası</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    body {
+      background-color: #00FF00;
+      background-size: cover;
+      background-position: center;
+    }
+
+    #searchBar {
+      background-color: red;
+      width: 500px;
+      height: 50px;
+      margin: 40px auto 20px;
+      border-radius: 20px;
+    }
+
+    #tiles {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-gap: 20px;
+      width: 80%;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .tile {
+      background-color: #333;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="searchBar"></div>
+  <div id="tiles"></div>
+
+  <script>
+    const body = document.body;
+    const tilesContainer = document.getElementById('tiles');
+
+    // Load wallpaper from localStorage
+    function loadWallpaper() {
+      const wp = localStorage.getItem('wallpaper');
+      if (wp) body.style.backgroundImage = `url("${wp}")`;
+    }
+
+    // Set wallpaper
+    function setWallpaper(src) {
+      localStorage.setItem('wallpaper', src);
+      body.style.backgroundImage = `url("${src}")`;
+    }
+
+    // Handle right-click for wallpaper selection
+    body.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const choice = prompt("Duvar kağıdı URL’si gir veya 'dosya' yaz:");
+      if (choice === 'dosya') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = () => {
+          const file = input.files[0];
+          const reader = new FileReader();
+          reader.onload = (event) => setWallpaper(event.target.result);
+          reader.readAsDataURL(file);
+        };
+        input.click();
+      } else if (choice) {
+        setWallpaper(choice);
+      }
+    });
+
+    // Load or initialize quick links
+    function loadTiles() {
+      const links = JSON.parse(localStorage.getItem('quickLinks') || '[]');
+      tilesContainer.innerHTML = '';
+      for (let i = 0; i < 8; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        if (links[i]) {
+          tile.title = links[i];
+          tile.onclick = () => window.open(links[i], '_blank');
+        } else {
+          tile.onclick = () => {
+            const url = prompt('URL girin:');
+            if (url) {
+              links[i] = url;
+              localStorage.setItem('quickLinks', JSON.stringify(links));
+              loadTiles();
+            }
+          };
+        }
+        tilesContainer.appendChild(tile);
+      }
+    }
+
+    loadWallpaper();
+    loadTiles();
+  </script>
+</body>
+</html>
